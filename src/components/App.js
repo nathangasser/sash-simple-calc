@@ -13,10 +13,10 @@ const App = () => {
         if (!isNaN(sashweight)) {
             let upperRange = 0;
             let lowerRange = 0;
-            if (position === 'top') {
+            if (position === 'bottom') {
                 upperRange = sashweight / 2 + .5;
                 lowerRange = sashweight / 2;
-            } else if (position === 'bottom') {
+            } else if (position === 'top') {
                 upperRange = sashweight / 2;
                 lowerRange = sashweight / 2 - .5;
             } else {
