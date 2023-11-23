@@ -60,7 +60,7 @@ const App = () => {
                             }}
                         />
                             <label className="form-check-label" htmlFor="flexRadioDefault1">
-                                Upper Sash
+                                Lower Sash
                             </label>
                         </div>
                         <div className="form-check form-check-inline">
@@ -75,7 +75,7 @@ const App = () => {
                             }}
                         />
                             <label className="form-check-label" htmlFor="flexRadioDefault2">
-                                Lower Sash
+                                Upper Sash
                             </label>
                     </div>
                     <div className="d-grid d-md-flex my-3">
