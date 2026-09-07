@@ -3,13 +3,18 @@
 // during install; see comments on each formula for why).
 //
 // Formulas current as of the initial build. Sill depth (bevel, nose
-// projection) and minimum rough opening are not yet implemented —
-// they're planned but need more shop input before they're safe to ship.
+// projection) is not yet implemented — it's planned but needs more
+// shop input before it's safe to ship.
 
 export const DEFAULT_WALL_DEPTH = 5.25; // 5-1/4", almost always deep enough; real wall depth is often unknown when milling
 export const DEFAULT_CASING = 'western';
 export const DEFAULT_COUNTERWEIGHT = 'pulley-rope';
 export const DEFAULT_SILL_ALLOWANCE = 14; // sill.length = sash.width + 14" when ear length isn't specified
+
+// RO.width.min = sash.width + 1/8" + 2", RO.height.min = sash.height + 1" + 3"
+// Same allowance for both window types (one formula was given for both).
+export const RO_WIDTH_ALLOWANCE = 0.125 + 2;
+export const RO_HEIGHT_ALLOWANCE = 1 + 3;
 
 export const COUNTERWEIGHT_OPTIONS = [
   { value: 'pulley-rope', label: 'Pulley & rope' },
@@ -69,6 +74,16 @@ export function sillLength(sashWidth, earLength) {
   const usedDefault = earLength === null || earLength === undefined || earLength === '';
   const allowance = usedDefault ? DEFAULT_SILL_ALLOWANCE : parseInches(earLength);
   return { value: sashWidth + allowance, assumed: usedDefault };
+}
+
+export function roMinimum(sashWidth, sashHeight) {
+  return { width: sashWidth + RO_WIDTH_ALLOWANCE, height: sashHeight + RO_HEIGHT_ALLOWANCE };
+}
+
+// The exact inverse of roMinimum — the biggest sash that still leaves
+// the given rough opening at or above its minimum.
+export function maxSashFromRO(roWidth, roHeight) {
+  return { width: roWidth - RO_WIDTH_ALLOWANCE, height: roHeight - RO_HEIGHT_ALLOWANCE };
 }
 
 // Jamb width is the rip width of the jamb stock, driven by wall depth.
@@ -172,14 +187,32 @@ export function entryNote(entry) {
   return `${casingNote} · ${counterweightLabel(entry.counterweightSystem)}`;
 }
 
+// RO-solved entries are titled by the rough opening the crew actually
+// gave us, not the sash size we derived from it.
 export function entryTitle(entry) {
-  return `${entry.label} · ${windowTypeLabel(entry.windowType)} (${entry.sashWidth}x${entry.sashHeight})`;
+  const dims = entry.solvedFromRO
+    ? `RO ${entry.roWidthInput}x${entry.roHeightInput}`
+    : `${entry.sashWidth}x${entry.sashHeight}`;
+  return `${entry.label} · ${windowTypeLabel(entry.windowType)} (${dims})`;
 }
 
 // Plain-text block for one window entry, used by "Copy all".
-export function entryText(entry) {
+// showRoMin only affects entries entered by sash size — an RO-solved
+// entry always shows its "max sash size" line, since that's the point
+// of that mode.
+export function entryText(entry, { showRoMin = false } = {}) {
   const c = computeEntry(entry);
   const lines = [entryTitle(entry)];
+  const width = parseInches(entry.sashWidth);
+  const height = parseInches(entry.sashHeight);
+
+  if (entry.solvedFromRO) {
+    lines.push(`Max sash size: ${formatCutLength(width)} x ${formatCutLength(height)} (solved)`);
+  } else if (showRoMin) {
+    const ro = roMinimum(width, height);
+    lines.push(`Rough opening (min): ${formatCutLength(ro.width)} x ${formatCutLength(ro.height)}`);
+  }
+
   lines.push(`Jamb legs: ${formatCutLength(c.legLength)} x2`);
   lines.push(`Jamb head: ${formatCutLength(c.headLength)}`);
   if (c.jambWidth !== null) {
@@ -200,6 +233,6 @@ export function totalsText(entries) {
   ].join('\n');
 }
 
-export function allEntriesText(entries) {
-  return [...entries.map(entryText), totalsText(entries)].join('\n\n');
+export function allEntriesText(entries, options) {
+  return [...entries.map((e) => entryText(e, options)), totalsText(entries)].join('\n\n');
 }

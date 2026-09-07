@@ -11,10 +11,14 @@ import {
   entryTitle,
   formatCutLength,
   formatFeetInches,
+  maxSashFromRO,
+  parseInches,
+  roMinimum,
 } from '../utils/cutsheet';
 
 const emptyForm = {
   windowType: 'dh',
+  solveFor: 'sash',
   sashWidth: '',
   sashHeight: '',
   wallDepth: '',
@@ -40,6 +44,39 @@ function WindowTypeSeg({ value, onChange }) {
       >
         Casement
       </button>
+    </div>
+  );
+}
+
+function SolveForSeg({ value, onChange }) {
+  return (
+    <div className="seg mb-14">
+      <button
+        type="button"
+        className={value === 'sash' ? 'seg-btn seg-btn-active' : 'seg-btn'}
+        onClick={() => onChange('sash')}
+      >
+        Sash size
+      </button>
+      <button
+        type="button"
+        className={value === 'ro' ? 'seg-btn seg-btn-active' : 'seg-btn'}
+        onClick={() => onChange('ro')}
+      >
+        Rough opening
+      </button>
+    </div>
+  );
+}
+
+function RoCallout({ label, width, height, solved }) {
+  return (
+    <div className="ro-callout">
+      <span className="ro-callout-label">{label}</span>
+      <span className="ro-callout-val">
+        {formatCutLength(width)} &times; {formatCutLength(height)}
+        {solved && <span className="solved-flag">solved</span>}
+      </span>
     </div>
   );
 }
@@ -110,11 +147,23 @@ function DetailsFields({ form, setField }) {
   );
 }
 
-function EntryLines({ entry }) {
+function EntryLines({ entry, showRoMin }) {
   const c = computeEntry(entry);
   const note = entryNote(entry);
+  const width = parseInches(entry.sashWidth);
+  const height = parseInches(entry.sashHeight);
   return (
     <>
+      {entry.solvedFromRO && (
+        <RoCallout label="Max sash size" width={width} height={height} solved />
+      )}
+      {!entry.solvedFromRO && showRoMin && (
+        <RoCallout
+          label="Rough opening (min)"
+          width={roMinimum(width, height).width}
+          height={roMinimum(width, height).height}
+        />
+      )}
       <div className="cut-line">
         <span>Jamb legs</span>
         <span className="cut-val">
@@ -146,12 +195,29 @@ function EntryLines({ entry }) {
 
 function EditModal({ entry, onSave, onCancel }) {
   const [form, setForm] = useState({ ...entry });
+  const isRO = !!form.solvedFromRO;
 
   function setField(key, value) {
     setForm((f) => ({ ...f, [key]: value }));
   }
 
+  function setDimW(value) {
+    setField(isRO ? 'roWidthInput' : 'sashWidth', value);
+  }
+
+  function setDimH(value) {
+    setField(isRO ? 'roHeightInput' : 'sashHeight', value);
+  }
+
   function handleSave() {
+    if (isRO) {
+      const roW = parseInches(form.roWidthInput);
+      const roH = parseInches(form.roHeightInput);
+      if (isNaN(roW) || isNaN(roH)) return;
+      const solved = maxSashFromRO(roW, roH);
+      onSave({ ...form, sashWidth: solved.width, sashHeight: solved.height });
+      return;
+    }
     if (form.sashWidth === '' || form.sashHeight === '') return;
     onSave(form);
   }
@@ -184,28 +250,28 @@ function EditModal({ entry, onSave, onCancel }) {
         <div className="field-row">
           <div>
             <label className="field-label" htmlFor="cs-edit-width">
-              Sash width
+              {isRO ? 'RO width' : 'Sash width'}
             </label>
             <input
               id="cs-edit-width"
               className="field-input"
               inputMode="decimal"
               placeholder="in"
-              value={form.sashWidth}
-              onChange={(e) => setField('sashWidth', e.target.value)}
+              value={isRO ? form.roWidthInput : form.sashWidth}
+              onChange={(e) => setDimW(e.target.value)}
             />
           </div>
           <div>
             <label className="field-label" htmlFor="cs-edit-height">
-              Sash height
+              {isRO ? 'RO height' : 'Sash height'}
             </label>
             <input
               id="cs-edit-height"
               className="field-input"
               inputMode="decimal"
               placeholder="in"
-              value={form.sashHeight}
-              onChange={(e) => setField('sashHeight', e.target.value)}
+              value={isRO ? form.roHeightInput : form.sashHeight}
+              onChange={(e) => setDimH(e.target.value)}
             />
           </div>
         </div>
@@ -227,6 +293,7 @@ function EditModal({ entry, onSave, onCancel }) {
 
 export default function CutSheetCalculator() {
   const [entries, setEntries] = useLocalStorage('heartwood.cutsheet.entries', []);
+  const [showRoMin, setShowRoMin] = useLocalStorage('heartwood.cutsheet.showRoMin', false);
   const [form, setForm] = useState(emptyForm);
   const [showDetails, setShowDetails] = useState(false);
   const [editingId, setEditingId] = useState(null);
@@ -244,11 +311,30 @@ export default function CutSheetCalculator() {
 
   function handleAdd() {
     if (form.sashWidth === '' || form.sashHeight === '') return;
-    const newEntry = {
-      id: Date.now(),
-      label: `Window ${entries.length + 1}`,
-      ...form,
-    };
+    let newEntry;
+    if (form.solveFor === 'ro') {
+      const roW = parseInches(form.sashWidth);
+      const roH = parseInches(form.sashHeight);
+      if (isNaN(roW) || isNaN(roH)) return;
+      const solved = maxSashFromRO(roW, roH);
+      newEntry = {
+        ...form,
+        id: Date.now(),
+        label: `Window ${entries.length + 1}`,
+        solvedFromRO: true,
+        roWidthInput: form.sashWidth,
+        roHeightInput: form.sashHeight,
+        sashWidth: solved.width,
+        sashHeight: solved.height,
+      };
+    } else {
+      newEntry = {
+        ...form,
+        id: Date.now(),
+        label: `Window ${entries.length + 1}`,
+        solvedFromRO: false,
+      };
+    }
     setEntries((prev) => [...prev, newEntry]);
     setForm(emptyForm);
     setShowDetails(false);
@@ -276,7 +362,7 @@ export default function CutSheetCalculator() {
 
   function handleCopy() {
     if (entries.length === 0) return;
-    const text = allEntriesText(entries);
+    const text = allEntriesText(entries, { showRoMin });
     const showCopied = () => {
       setCopied(true);
       setTimeout(() => setCopied(false), 1500);
@@ -299,7 +385,7 @@ export default function CutSheetCalculator() {
       <div className="field-row">
         <div>
           <label className="field-label" htmlFor="cs-width">
-            Sash width
+            {form.solveFor === 'ro' ? 'RO width' : 'Sash width'}
           </label>
           <input
             id="cs-width"
@@ -312,7 +398,7 @@ export default function CutSheetCalculator() {
         </div>
         <div>
           <label className="field-label" htmlFor="cs-height">
-            Sash height
+            {form.solveFor === 'ro' ? 'RO height' : 'Sash height'}
           </label>
           <input
             id="cs-height"
@@ -336,6 +422,27 @@ export default function CutSheetCalculator() {
 
       {showDetails && (
         <div className="mb-14">
+          <span className="field-label">Solve for</span>
+          <SolveForSeg
+            value={form.solveFor}
+            onChange={(v) => {
+              setField('solveFor', v);
+              setField('sashWidth', '');
+              setField('sashHeight', '');
+            }}
+          />
+
+          <label className="toggle-row mb-14">
+            <input
+              type="checkbox"
+              checked={showRoMin}
+              onChange={(e) => setShowRoMin(e.target.checked)}
+            />
+            <span>Show rough opening minimum</span>
+          </label>
+
+          <hr className="details-divider" />
+
           <DetailsFields form={form} setField={setField} />
         </div>
       )}
@@ -356,7 +463,7 @@ export default function CutSheetCalculator() {
             >
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div className="entry-label">{entryTitle(e)}</div>
-                <EntryLines entry={e} />
+                <EntryLines entry={e} showRoMin={showRoMin} />
               </div>
               <button
                 type="button"
