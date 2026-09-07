@@ -236,3 +236,51 @@ export function totalsText(entries) {
 export function allEntriesText(entries, options) {
   return [...entries.map((e) => entryText(e, options)), totalsText(entries)].join('\n\n');
 }
+
+function csvField(value) {
+  const s = String(value ?? '');
+  return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+}
+
+// CSV export — same figures as "Copy all", laid out as one row per
+// window plus a two-line materials summary at the bottom.
+export function toCsv(entries, { showRoMin = false } = {}) {
+  const header = ['Window', 'Type', 'Dimensions', 'Jamb legs (x2)', 'Jamb head', 'Jamb width', 'Sill', 'Notes'];
+
+  const rows = entries.map((entry) => {
+    const c = computeEntry(entry);
+    const width = parseInches(entry.sashWidth);
+    const height = parseInches(entry.sashHeight);
+    const dims = entry.solvedFromRO
+      ? `RO ${entry.roWidthInput}x${entry.roHeightInput} (max sash ${formatCutLength(width)}x${formatCutLength(height)})`
+      : `${entry.sashWidth}x${entry.sashHeight}`;
+
+    const notes = [];
+    if (entry.solvedFromRO) {
+      notes.push('solved from RO');
+    } else if (showRoMin) {
+      const ro = roMinimum(width, height);
+      notes.push(`RO min ${formatCutLength(ro.width)}x${formatCutLength(ro.height)}`);
+    }
+    const note = entryNote(entry);
+    if (note) notes.push(note);
+
+    return [
+      entry.label,
+      windowTypeLabel(entry.windowType),
+      dims,
+      formatCutLength(c.legLength),
+      formatCutLength(c.headLength),
+      c.jambWidth !== null ? formatCutLength(c.jambWidth) : '',
+      `${formatCutLength(c.sillLength)}${c.sillAssumed ? ' (assumed)' : ''}`,
+      notes.join(' · '),
+    ];
+  });
+
+  const totals = computeTotals(entries);
+  const lines = [header, ...rows].map((r) => r.map(csvField).join(','));
+  lines.push('');
+  lines.push(['1x6 VG Doug Fir needed', formatFeetInches(totals.jambInches)].map(csvField).join(','));
+  lines.push(['2x8 Redwood needed', formatFeetInches(totals.sillInches)].map(csvField).join(','));
+  return lines.join('\r\n');
+}

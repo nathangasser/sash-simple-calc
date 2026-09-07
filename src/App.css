@@ -634,6 +634,18 @@ input:focus-visible {
   white-space: nowrap;
 }
 
+.export-link {
+  display: block;
+  border: none;
+  background: none;
+  color: var(--ink-soft);
+  font-weight: 700;
+  font-size: 11px;
+  text-decoration: underline;
+  padding: 6px 2px 0;
+  cursor: pointer;
+}
+
 .solved-flag {
   background: var(--ink);
   color: #ffffff;
