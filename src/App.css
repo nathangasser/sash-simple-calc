@@ -487,3 +487,198 @@ input:focus-visible {
   outline: 3px solid var(--yellow);
   outline-offset: 2px;
 }
+
+/* --- Cut sheet --- */
+
+.seg {
+  display: flex;
+  border: var(--bw) solid var(--ink);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.seg-btn {
+  flex: 1;
+  border: none;
+  background: #ffffff;
+  color: var(--ink);
+  font-weight: 800;
+  font-size: 13px;
+  padding: 11px 4px;
+  cursor: pointer;
+}
+
+.seg-btn-small {
+  font-size: 11px;
+  padding: 11px 2px;
+}
+
+.seg-btn + .seg-btn {
+  border-left: var(--bw) solid var(--ink);
+}
+
+.seg-btn-active {
+  background: var(--ink);
+  color: #ffffff;
+}
+
+.details-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  background: none;
+  border: none;
+  padding: 10px 2px;
+  font-weight: 800;
+  font-size: 13px;
+  color: var(--ink);
+  cursor: pointer;
+  border-top: 1px solid rgba(0, 0, 0, 0.12);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+  margin-bottom: 12px;
+}
+
+.chevron {
+  display: inline-block;
+  transition: transform 0.15s;
+}
+
+.chevron-open {
+  transform: rotate(180deg);
+}
+
+.entry-card-clickable {
+  cursor: pointer;
+}
+
+.cut-line {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  font-family: 'Courier New', monospace;
+  font-weight: 700;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.cut-val {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 5px;
+}
+
+.qty-pill {
+  background: var(--panel);
+  color: var(--ink-soft);
+  font-family: var(--font);
+  font-size: 10px;
+  font-weight: 800;
+  padding: 1px 6px;
+  border-radius: 8px;
+}
+
+.assumed-flag {
+  background: var(--yellow);
+  color: #514500;
+  font-family: var(--font);
+  font-size: 10px;
+  font-weight: 800;
+  padding: 1px 6px;
+  border-radius: 6px;
+  white-space: nowrap;
+  margin-left: 6px;
+}
+
+.cut-note {
+  color: var(--ink-soft);
+  font-weight: 700;
+  font-size: 12px;
+  margin: 6px 0 0;
+}
+
+.totals-card {
+  border: var(--bw) solid var(--ink);
+  border-radius: var(--radius);
+  padding: 12px 14px;
+  margin-bottom: 16px;
+  background: var(--panel);
+}
+
+.totals-title {
+  font-weight: 800;
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.total-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-weight: 800;
+  font-size: 14px;
+  margin-bottom: 4px;
+}
+
+.total-row span:last-child {
+  font-family: 'Courier New', monospace;
+}
+
+.total-sub {
+  color: var(--ink-soft);
+  font-weight: 700;
+  font-size: 11px;
+  margin: 0 0 8px;
+}
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 16px;
+  z-index: 100;
+}
+
+.modal-card {
+  width: 100%;
+  max-width: 420px;
+  max-height: 88vh;
+  overflow-y: auto;
+  background: #ffffff;
+  border: var(--bw) solid var(--ink);
+  border-radius: var(--radius);
+  padding: 18px;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.modal-close {
+  border: none;
+  background: none;
+  font-size: 22px;
+  line-height: 1;
+  color: var(--ink);
+  cursor: pointer;
+  padding: 4px 8px;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.modal-actions .btn {
+  margin-bottom: 0;
+}

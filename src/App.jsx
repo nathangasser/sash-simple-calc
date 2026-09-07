@@ -1,6 +1,7 @@
 import logo from './logo.png';
 import CounterweightCalculator from './components/CounterweightCalculator';
 import InchCalculator from './components/InchCalculator';
+import CutSheetCalculator from './components/CutSheetCalculator';
 import { useLocalStorage } from './hooks/useLocalStorage';
 
 export default function App() {
@@ -25,10 +26,19 @@ export default function App() {
           >
             Inches
           </button>
+          <button
+            type="button"
+            className={tab === 'cutsheet' ? 'tab tab-active' : 'tab'}
+            onClick={() => setTab('cutsheet')}
+          >
+            Cut sheet
+          </button>
         </div>
       </div>
 
-      {tab === 'counterweight' ? <CounterweightCalculator /> : <InchCalculator />}
+      {tab === 'counterweight' && <CounterweightCalculator />}
+      {tab === 'inches' && <InchCalculator />}
+      {tab === 'cutsheet' && <CutSheetCalculator />}
     </div>
   );
 }
