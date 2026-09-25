@@ -52,10 +52,11 @@ input[type='checkbox'] {
   width: 100%;
   max-width: 420px;
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   margin-bottom: 16px;
-  gap: 12px;
+  gap: 10px 12px;
 }
 
 .logo {
@@ -66,16 +67,19 @@ input[type='checkbox'] {
 
 .tabs {
   display: flex;
-  gap: 6px;
+  flex: 1 1 100%;
+  gap: 4px;
 }
 
 .tab {
+  flex: 1 1 auto;
+  white-space: nowrap;
   border: none;
   background: none;
   font-weight: 700;
   font-size: 13px;
   letter-spacing: 0.02em;
-  padding: 8px 12px;
+  padding: 8px 6px;
   border-radius: 8px;
   color: var(--ink-soft);
   cursor: pointer;
@@ -644,6 +648,19 @@ input:focus-visible {
   text-decoration: underline;
   padding: 6px 2px 0;
   cursor: pointer;
+}
+
+.box-label {
+  font-weight: 800;
+  font-size: 10px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  margin: 8px 0 2px;
+}
+
+.option-flag {
+  margin-left: 8px;
 }
 
 .solved-flag {

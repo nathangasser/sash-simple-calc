@@ -2,6 +2,7 @@ import logo from './logo.png';
 import CounterweightCalculator from './components/CounterweightCalculator';
 import InchCalculator from './components/InchCalculator';
 import CutSheetCalculator from './components/CutSheetCalculator';
+import SpringboxCalculator from './components/SpringboxCalculator';
 import { useLocalStorage } from './hooks/useLocalStorage';
 
 export default function App() {
@@ -33,12 +34,20 @@ export default function App() {
           >
             Cut sheet
           </button>
+          <button
+            type="button"
+            className={tab === 'springbox' ? 'tab tab-active' : 'tab'}
+            onClick={() => setTab('springbox')}
+          >
+            Springbox
+          </button>
         </div>
       </div>
 
       {tab === 'counterweight' && <CounterweightCalculator />}
       {tab === 'inches' && <InchCalculator />}
       {tab === 'cutsheet' && <CutSheetCalculator />}
+      {tab === 'springbox' && <SpringboxCalculator />}
     </div>
   );
 }
