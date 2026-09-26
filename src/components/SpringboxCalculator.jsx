@@ -46,19 +46,21 @@ function FitLabel({ fit, small }) {
   return <span className={`sb-fit sb-fit-${fit.key}${small ? ' sb-fit-small' : ''}`}>{fit.label}</span>;
 }
 
-function BoxDiagram({ box }) {
+function BoxDiagram({ box, mini }) {
   return (
-    <div className="sb-unit">
-      <div className="box-label sb-unit-title">{box.box}</div>
+    <div className={mini ? 'sb-unit sb-mini' : 'sb-unit'}>
+      <div className="box-label sb-unit-title">{mini ? `${box.side === 'left' ? 'Left' : 'Right'} box` : box.box}</div>
       {box.ratchets.map((r, i) => (
         <div className={i === 0 ? 'sb-unit-row sb-unit-top' : 'sb-unit-row sb-unit-bottom'} key={r.position}>
           <div className="sb-cell-box">
-            <div className="sb-dial">{r.clicks}</div>
+            <div className="sb-dial" aria-label={`${r.position}: ${plural(r.clicks)}`}>
+              {r.clicks}
+            </div>
           </div>
           <div className="sb-cell-label">
-            <div className="sb-ratchet">{r.position}</div>
+            {!mini && <div className="sb-ratchet">{r.position}</div>}
             <div className="sb-sash">{r.sash}</div>
-            <div className="sb-clicks">{plural(r.clicks)}</div>
+            {!mini && <div className="sb-clicks">{plural(r.clicks)}</div>}
           </div>
         </div>
       ))}
@@ -80,22 +82,20 @@ function Recommended({ option }) {
 }
 
 function OtherOption({ option }) {
-  const boxes = optionBoxes(option);
   return (
-    <div className="entry-card">
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div className="entry-label" style={{ marginBottom: 2 }}>
+    <div className="entry-card sb-alt-card">
+      <div className="sb-alt-head">
+        <div className="entry-label" style={{ marginBottom: 0 }}>
           {optionTitle(option)}
         </div>
-        {boxes.map((b) => (
-          <div className="sb-alt-line" key={b.box}>
-            {boxes.length > 1 ? `${b.side === 'left' ? 'Left' : 'Right'} box: ` : ''}upper sash {b.upper} &middot; lower
-            sash {b.lower} {boxes.length === 1 ? 'clicks' : ''}
-          </div>
-        ))}
-        {option.extended && <div className="sb-alt-more">More than 3 clicks</div>}
+        <FitLabel fit={option.fit} small />
       </div>
-      <FitLabel fit={option.fit} small />
+      <div className="sb-units">
+        {optionBoxes(option).map((b) => (
+          <BoxDiagram box={b} mini key={b.box} />
+        ))}
+      </div>
+      {option.extended && <div className="sb-alt-more">More than 3 clicks</div>}
     </div>
   );
 }
