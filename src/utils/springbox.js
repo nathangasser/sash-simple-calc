@@ -41,8 +41,8 @@ const EPS = 1e-9;
 
 // Friction (as a share of sash weight) each label tolerates, best first.
 export const FIT_LEVELS = [
-  { max: 0.15, label: 'Good fit', key: 'good' },
-  { max: 0.25, label: 'Fair fit', key: 'fair' },
+  { max: 0.2, label: 'Good fit', key: 'good' },
+  { max: 0.3, label: 'Fair fit', key: 'fair' },
   { max: 0.4, label: 'Poor fit', key: 'poor' },
 ];
 const NOT_RECOMMENDED = { label: 'Not recommended', key: 'nr' };
@@ -287,14 +287,29 @@ export function optionTitle(option) {
     : `Single ${option.model} · ${option.hand}-hand box`;
 }
 
-// [{ box: 'Left-hand box', lower: 1, upper: 2 }, ...]
+// [{ box: 'Left-hand box', lower: 1, upper: 2, ratchets: [...] }, ...]
+//
+// `ratchets` lists the two dials in physical order, top first. The top
+// ratchet is the top spring (right cable), which feeds the upper sash from a
+// left-hand box but the lower sash from a right-hand box; the bottom ratchet
+// is the reverse.
 export function optionBoxes(option) {
   const sides = option.install === 'dual' ? ['left', 'right'] : [option.hand];
-  return sides.map((side) => ({
-    box: `${side === 'left' ? 'Left' : 'Right'}-hand box`,
-    lower: option.lower.clicks[side],
-    upper: option.upper.clicks[side],
-  }));
+  return sides.map((side) => {
+    const lower = option.lower.clicks[side];
+    const upper = option.upper.clicks[side];
+    const topFeedsUpper = side === 'left';
+    return {
+      side,
+      box: `${side === 'left' ? 'Left' : 'Right'}-hand box`,
+      lower,
+      upper,
+      ratchets: [
+        { position: 'Top ratchet', sash: topFeedsUpper ? 'Upper sash' : 'Lower sash', clicks: topFeedsUpper ? upper : lower },
+        { position: 'Bottom ratchet', sash: topFeedsUpper ? 'Lower sash' : 'Upper sash', clicks: topFeedsUpper ? lower : upper },
+      ],
+    };
+  });
 }
 
 export const heading = (option) => (option.fit.key === 'nr' ? 'Closest option' : 'Recommended');
@@ -304,7 +319,11 @@ export function optionsText(shown) {
     .map((option, i) => {
       const lines = [`${i === 0 ? `${heading(option)}: ` : ''}${optionTitle(option)} (${option.fit.label})`];
       for (const b of optionBoxes(option)) {
-        lines.push(`${b.box}: lower ${plural(b.lower)}, upper ${plural(b.upper)}`);
+        const [top, bottom] = b.ratchets;
+        lines.push(
+          `${b.box}: ${top.position.toLowerCase()} ${plural(top.clicks)} (${top.sash.toLowerCase()}), ` +
+            `${bottom.position.toLowerCase()} ${plural(bottom.clicks)} (${bottom.sash.toLowerCase()})`
+        );
       }
       if (option.extended) lines.push('More than 3 clicks');
       return lines.join('\n');

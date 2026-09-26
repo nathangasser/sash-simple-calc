@@ -486,6 +486,11 @@ input[type='checkbox'] {
   margin-top: 18px;
 }
 
+.hint a {
+  color: var(--ink);
+  font-weight: 800;
+}
+
 button:focus-visible,
 input:focus-visible {
   outline: 3px solid var(--yellow);
@@ -683,14 +688,78 @@ input:focus-visible {
   margin: 2px 0 8px;
 }
 
-.sb-hero .box-label {
-  font-size: 11px;
+.sb-unit {
+  margin-top: 10px;
 }
 
-.sb-hero .cut-line {
-  font-size: 16px;
+.sb-unit-title {
+  font-size: 11px;
+  margin: 0 0 6px;
+}
+
+.sb-unit-row {
+  display: grid;
+  grid-template-columns: 76px 1fr;
+  column-gap: 14px;
+}
+
+.sb-cell-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 0;
+  background: var(--panel);
+  border-left: var(--bw) solid var(--ink);
+  border-right: var(--bw) solid var(--ink);
+}
+
+.sb-unit-top .sb-cell-box {
+  border-top: var(--bw) solid var(--ink);
+  border-radius: 12px 12px 0 0;
+}
+
+.sb-unit-bottom .sb-cell-box {
+  border-bottom: var(--bw) solid var(--ink);
+  border-radius: 0 0 12px 12px;
+}
+
+.sb-dial {
+  width: 46px;
+  height: 46px;
+  border: var(--bw) solid var(--ink);
+  border-radius: 50%;
+  background: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 900;
+  font-size: 24px;
+}
+
+.sb-cell-label {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.sb-ratchet {
   font-weight: 800;
-  line-height: 1.7;
+  font-size: 10px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.sb-sash {
+  font-weight: 900;
+  font-size: 18px;
+  line-height: 1.2;
+}
+
+.sb-clicks {
+  font-family: 'Courier New', monospace;
+  font-weight: 800;
+  font-size: 15px;
 }
 
 .sb-hero .sb-fit {

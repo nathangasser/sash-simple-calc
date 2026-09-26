@@ -13,6 +13,8 @@ import {
   springboxOptions,
 } from '../utils/springbox';
 
+const SOP_URL = 'https://sop.heartwoodrestore.com/double-hungs/duplex-sash-balances-spring-boxes';
+
 const emptyForm = {
   width: '',
   height: '',
@@ -44,23 +46,33 @@ function FitLabel({ fit, small }) {
   return <span className={`sb-fit sb-fit-${fit.key}${small ? ' sb-fit-small' : ''}`}>{fit.label}</span>;
 }
 
+function BoxDiagram({ box }) {
+  return (
+    <div className="sb-unit">
+      <div className="box-label sb-unit-title">{box.box}</div>
+      {box.ratchets.map((r, i) => (
+        <div className={i === 0 ? 'sb-unit-row sb-unit-top' : 'sb-unit-row sb-unit-bottom'} key={r.position}>
+          <div className="sb-cell-box">
+            <div className="sb-dial">{r.clicks}</div>
+          </div>
+          <div className="sb-cell-label">
+            <div className="sb-ratchet">{r.position}</div>
+            <div className="sb-sash">{r.sash}</div>
+            <div className="sb-clicks">{plural(r.clicks)}</div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function Recommended({ option }) {
   return (
     <div className="sb-hero">
       <div className="sb-tag">{heading(option)}</div>
       <div className="sb-big">{optionTitle(option)}</div>
       {optionBoxes(option).map((b) => (
-        <div key={b.box}>
-          <div className="box-label">{b.box}</div>
-          <div className="cut-line">
-            <span>Lower sash</span>
-            <span className="cut-val">{plural(b.lower)}</span>
-          </div>
-          <div className="cut-line">
-            <span>Upper sash</span>
-            <span className="cut-val">{plural(b.upper)}</span>
-          </div>
-        </div>
+        <BoxDiagram box={b} key={b.box} />
       ))}
       <FitLabel fit={option.fit} />
     </div>
@@ -77,8 +89,8 @@ function OtherOption({ option }) {
         </div>
         {boxes.map((b) => (
           <div className="sb-alt-line" key={b.box}>
-            {boxes.length > 1 ? `${b.box.split('-')[0]}: ` : ''}lower {b.lower} &middot; upper {b.upper}
-            {boxes.length === 1 ? ' clicks' : ''}
+            {boxes.length > 1 ? `${b.side === 'left' ? 'Left' : 'Right'} box: ` : ''}upper sash {b.upper} &middot; lower
+            sash {b.lower} {boxes.length === 1 ? 'clicks' : ''}
           </div>
         ))}
         {option.extended && <div className="sb-alt-more">More than 3 clicks</div>}
@@ -276,7 +288,9 @@ export default function SpringboxCalculator() {
         </button>
       </div>
       <p className="hint" style={{ marginTop: 12 }}>
-        Based on one test unit each of D1, D2 and D4 (D5 not included). Recommendations use 3 clicks or fewer.
+        <a href={SOP_URL} target="_blank" rel="noopener noreferrer">
+          Duplex spring box installation SOP
+        </a>
       </p>
     </div>
   );
