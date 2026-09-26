@@ -659,8 +659,92 @@ input:focus-visible {
   margin: 8px 0 2px;
 }
 
-.option-flag {
-  margin-left: 8px;
+/* --- Springbox --- */
+
+.sb-hero {
+  border: var(--bw) solid var(--ink);
+  border-radius: var(--radius);
+  padding: 14px;
+  margin: 12px 0 16px;
+}
+
+.sb-tag {
+  font-weight: 800;
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.sb-big {
+  font-weight: 900;
+  font-size: 24px;
+  line-height: 1.15;
+  margin: 2px 0 8px;
+}
+
+.sb-hero .box-label {
+  font-size: 11px;
+}
+
+.sb-hero .cut-line {
+  font-size: 16px;
+  font-weight: 800;
+  line-height: 1.7;
+}
+
+.sb-hero .sb-fit {
+  margin-top: 12px;
+}
+
+.sb-fit {
+  display: inline-block;
+  font-weight: 800;
+  font-size: 12px;
+  padding: 3px 10px;
+  border-radius: 8px;
+  color: var(--ink);
+}
+
+.sb-fit-small {
+  font-size: 11px;
+  padding: 2px 8px;
+  text-align: center;
+  flex-shrink: 0;
+  max-width: 112px;
+}
+
+.sb-fit-good {
+  background: #5aa469;
+}
+
+.sb-fit-fair {
+  background: #f2d45c;
+}
+
+.sb-fit-poor {
+  background: #f0a94b;
+}
+
+.sb-fit-nr {
+  background: #f0b8b0;
+}
+
+.sb-fit-over {
+  background: #c5d6f2;
+}
+
+.sb-alt-line {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--ink-soft);
+}
+
+.sb-alt-more {
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--ink-soft);
+  margin-top: 2px;
 }
 
 .solved-flag {

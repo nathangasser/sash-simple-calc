@@ -2,19 +2,16 @@ import { useMemo, useState } from 'react';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import { parseInches } from '../utils/cutsheet';
 import {
-  DEFAULT_FRICTION,
   MODELS,
   SINGLE_MAX_WIDTH,
+  heading,
   optionBoxes,
-  optionIssues,
   optionTitle,
   optionsText,
+  pickShown,
   plural,
   springboxOptions,
 } from '../utils/springbox';
-
-const MAX_EXACT_SHOWN = 6;
-const MAX_CLOSEST_SHOWN = 3;
 
 const emptyForm = {
   width: '',
@@ -24,7 +21,6 @@ const emptyForm = {
   install: 'any',
   hand: 'any',
   model: 'any',
-  friction: String(DEFAULT_FRICTION * 100),
 };
 
 function Seg({ options, value, onChange }) {
@@ -44,42 +40,50 @@ function Seg({ options, value, onChange }) {
   );
 }
 
-function OptionCard({ option, index, friction }) {
-  const issues = optionIssues(option);
+function FitLabel({ fit, small }) {
+  return <span className={`sb-fit sb-fit-${fit.key}${small ? ' sb-fit-small' : ''}`}>{fit.label}</span>;
+}
+
+function Recommended({ option }) {
+  return (
+    <div className="sb-hero">
+      <div className="sb-tag">{heading(option)}</div>
+      <div className="sb-big">{optionTitle(option)}</div>
+      {optionBoxes(option).map((b) => (
+        <div key={b.box}>
+          <div className="box-label">{b.box}</div>
+          <div className="cut-line">
+            <span>Lower sash</span>
+            <span className="cut-val">{plural(b.lower)}</span>
+          </div>
+          <div className="cut-line">
+            <span>Upper sash</span>
+            <span className="cut-val">{plural(b.upper)}</span>
+          </div>
+        </div>
+      ))}
+      <FitLabel fit={option.fit} />
+    </div>
+  );
+}
+
+function OtherOption({ option }) {
+  const boxes = optionBoxes(option);
   return (
     <div className="entry-card">
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div className="entry-label">
-          {optionTitle(option, index)}
-          {option.exact ? (
-            <span className="solved-flag option-flag">fits</span>
-          ) : (
-            <span className="assumed-flag">closest</span>
-          )}
+        <div className="entry-label" style={{ marginBottom: 2 }}>
+          {optionTitle(option)}
         </div>
-        {optionBoxes(option).map((b) => (
-          <div key={b.box}>
-            <div className="box-label">{b.box}</div>
-            <div className="cut-line">
-              <span>Lower sash</span>
-              <span className="cut-val">{plural(b.lower)}</span>
-            </div>
-            <div className="cut-line">
-              <span>Upper sash</span>
-              <span className="cut-val">{plural(b.upper)}</span>
-            </div>
+        {boxes.map((b) => (
+          <div className="sb-alt-line" key={b.box}>
+            {boxes.length > 1 ? `${b.box.split('-')[0]}: ` : ''}lower {b.lower} &middot; upper {b.upper}
+            {boxes.length === 1 ? ' clicks' : ''}
           </div>
         ))}
-        {issues.map((text) => (
-          <p className="cut-note" key={text}>
-            {text}
-          </p>
-        ))}
-        <p className="cut-note">
-          Holds through 80% of travel with at least {Math.ceil(option.needed * 100)}% friction
-          {option.exact ? '' : ` (you set ${Math.round(friction * 100)}%)`}
-        </p>
+        {option.extended && <div className="sb-alt-more">More than 3 clicks</div>}
       </div>
+      <FitLabel fit={option.fit} small />
     </div>
   );
 }
@@ -97,10 +101,6 @@ export default function SpringboxCalculator() {
   const height = parseInches(form.height);
   const upperWeight = parseFloat(form.upperWeight);
   const lowerWeight = parseFloat(form.lowerWeight);
-  const frictionPct = parseFloat(form.friction);
-  const friction = Number.isFinite(frictionPct)
-    ? Math.min(Math.max(frictionPct, 0), 90) / 100
-    : DEFAULT_FRICTION;
 
   const ready = [width, height, upperWeight, lowerWeight].every((n) => Number.isFinite(n) && n > 0);
 
@@ -108,17 +108,11 @@ export default function SpringboxCalculator() {
     if (!ready) return null;
     return springboxOptions(
       { width, height, upperWeight, lowerWeight },
-      { install: form.install, hand: form.hand, model: form.model },
-      friction
+      { install: form.install, hand: form.hand, model: form.model }
     );
-  }, [ready, width, height, upperWeight, lowerWeight, form.install, form.hand, form.model, friction]);
+  }, [ready, width, height, upperWeight, lowerWeight, form.install, form.hand, form.model]);
 
-  const exact = result ? result.options.filter((o) => o.exact) : [];
-  const shown = result
-    ? exact.length > 0
-      ? exact.slice(0, MAX_EXACT_SHOWN)
-      : result.options.slice(0, MAX_CLOSEST_SHOWN)
-    : [];
+  const shown = result ? pickShown(result.options) : [];
 
   function handleCopy() {
     if (shown.length === 0) return;
@@ -233,18 +227,6 @@ export default function SpringboxCalculator() {
             onChange={(v) => setField('model', v)}
             options={[{ value: 'any', label: 'Any' }, ...MODELS.map((m) => ({ value: m, label: m }))]}
           />
-
-          <label className="field-label" htmlFor="sb-friction">
-            Sash friction (% of sash weight)
-          </label>
-          <input
-            id="sb-friction"
-            className="field-input"
-            inputMode="decimal"
-            placeholder="15"
-            value={form.friction}
-            onChange={(e) => setField('friction', e.target.value)}
-          />
         </div>
       )}
 
@@ -252,14 +234,15 @@ export default function SpringboxCalculator() {
         <p className="empty-hint">Enter the window size and both sash weights to see install options.</p>
       ) : (
         <>
-          {result.singleBlocked && (
+          {result.singleNote === 'width' && (
             <p className="empty-hint">
               Single installs skipped: the window is wider than {SINGLE_MAX_WIDTH}&quot;.
             </p>
           )}
-          {exact.length === 0 && shown.length > 0 && (
+          {result.singleNote === 'ratio' && (
             <p className="empty-hint">
-              Nothing holds at {Math.round(friction * 100)}% friction. Closest options:
+              Dual only by default: the sash is wide for its height (half the height is{' '}
+              {Math.round(result.ratio * 100)}% of the width). Choose Single under Details to override.
             </p>
           )}
           {shown.length === 0 ? (
@@ -267,11 +250,19 @@ export default function SpringboxCalculator() {
               No install fits those choices. Try a dual install, or check the window height.
             </p>
           ) : (
-            <div className="entry-list">
-              {shown.map((o, i) => (
-                <OptionCard key={`${o.install}-${o.hand}-${o.model}`} option={o} index={i} friction={friction} />
-              ))}
-            </div>
+            <>
+              <Recommended option={shown[0]} />
+              {shown.length > 1 && (
+                <>
+                  <span className="field-label">Other options</span>
+                  <div className="entry-list">
+                    {shown.slice(1).map((o) => (
+                      <OtherOption key={`${o.install}-${o.hand}-${o.model}-${o.totalClicks}`} option={o} />
+                    ))}
+                  </div>
+                </>
+              )}
+            </>
           )}
         </>
       )}
@@ -285,7 +276,7 @@ export default function SpringboxCalculator() {
         </button>
       </div>
       <p className="hint" style={{ marginTop: 12 }}>
-        Based on one test unit each of D1, D2 and D4 (D5 not included). Clicks limited to 0 to 3.
+        Based on one test unit each of D1, D2 and D4 (D5 not included). Recommendations use 3 clicks or fewer.
       </p>
     </div>
   );
